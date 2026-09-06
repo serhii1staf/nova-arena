@@ -3,7 +3,9 @@ import { useEffect, useRef } from "react";
 import * as THREE from "three";
 import { useFrame } from "@react-three/fiber";
 import { Text, Billboard } from "@react-three/drei";
+import { CapsuleCollider, RigidBody, type RapierRigidBody } from "@react-three/rapier";
 import { Character, type CharacterHandle } from "./Character";
+import type { BodyTag } from "../world";
 
 export interface RemotePlayer {
   playerId: number;
@@ -16,8 +18,9 @@ export interface RemotePlayer {
 }
 
 /** Удалённый игрок: интерполяция к последней известной позиции (сглаживание сетевых тиков). */
-function Remote({ p, weapon = false }: { p: RemotePlayer; weapon?: boolean }) {
+function Remote({ p, weapon = false, collidable = false }: { p: RemotePlayer; weapon?: boolean; collidable?: boolean }) {
   const g = useRef<THREE.Group>(null!);
+  const body = useRef<RapierRigidBody>(null);
   const char = useRef<CharacterHandle>(null);
   const target = useRef(new THREE.Vector3(p.x, p.y, p.z));
   const previousTarget = useRef(target.current.clone());
@@ -45,21 +48,25 @@ function Remote({ p, weapon = false }: { p: RemotePlayer; weapon?: boolean }) {
     }
     updateAge.current += dt;
     predicted.current.copy(target.current);
-    predicted.current.addScaledVector(velocity.current, Math.min(updateAge.current, 0.08));
+    predicted.current.addScaledVector(velocity.current, Math.min(updateAge.current, 0.04));
     lastPosition.current.copy(g.current.position);
-    g.current.position.lerp(predicted.current, 1 - Math.exp(-dt * 28));
-    const speed = lastPosition.current.distanceTo(g.current.position) / Math.max(dt, 0.001);
+    const nextPosition = predicted.current;
+    if (collidable && body.current) {
+      body.current.setTranslation({ x: nextPosition.x, y: nextPosition.y, z: nextPosition.z }, true);
+      g.current.position.set(0, 0, 0);
+    } else {
+      g.current.position.lerp(nextPosition, 1 - Math.exp(-dt * 18));
+    }
+    const speed = collidable ? velocity.current.length() : lastPosition.current.distanceTo(g.current.position) / Math.max(dt, 0.001);
     if (char.current) char.current.speed = Math.min(1, speed / 7);
     let dy = p.ry - g.current.rotation.y;
     dy = Math.atan2(Math.sin(dy), Math.cos(dy));
     g.current.rotation.y += dy * Math.min(1, dt * 12);
   });
 
-  return (
+  const visual = (
     <group ref={g}>
-      <group rotation={[0, Math.PI, 0]}>
-        <Character ref={char} skinId={p.skinId} weapon={weapon} castShadow={false} />
-      </group>
+      <Character ref={char} skinId={p.skinId} weapon={weapon} castShadow={false} />
       <Billboard position={[0, 2.15, 0]}>
         <Text fontSize={0.26} color="#ffffff" outlineWidth={0.025} outlineColor="#0891b2" anchorY="bottom">
           {p.name}
@@ -67,13 +74,20 @@ function Remote({ p, weapon = false }: { p: RemotePlayer; weapon?: boolean }) {
       </Billboard>
     </group>
   );
+  if (!collidable) return visual;
+  return (
+    <RigidBody ref={body} type="fixed" colliders={false} position={[p.x, p.y, p.z]} userData={{ type: "remote", id: p.playerId } satisfies BodyTag}>
+      <CapsuleCollider args={[0.35, 0.3]} />
+      {visual}
+    </RigidBody>
+  );
 }
 
-export function RemotePlayers({ players, weapon = false }: { players: RemotePlayer[]; weapon?: boolean }) {
+export function RemotePlayers({ players, weapon = false, collidable = false }: { players: RemotePlayer[]; weapon?: boolean; collidable?: boolean }) {
   return (
     <>
       {players.map((p) => (
-        <Remote key={p.playerId} p={p} weapon={weapon} />
+        <Remote key={p.playerId} p={p} weapon={weapon} collidable={collidable} />
       ))}
     </>
   );

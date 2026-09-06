@@ -4,11 +4,12 @@ type Position = Omit<RemotePlayer, "playerId"> & { playerId: number };
 
 export interface RealtimeConnection {
   update(position: Partial<Position>): void;
+  damage(targetId: number, amount: number, headshot: boolean): void;
   close(): void;
 }
 
-export function connectRealtime(room: string, player: Position, onPlayers: (players: RemotePlayer[]) => void): RealtimeConnection {
-  if (typeof window === "undefined") return { update: () => {}, close: () => {} };
+export function connectRealtime(room: string, player: Position, onPlayers: (players: RemotePlayer[]) => void, onDamage?: (amount: number, from: string, headshot: boolean) => void): RealtimeConnection {
+  if (typeof window === "undefined") return { update: () => {}, damage: () => {}, close: () => {} };
   const endpoint = `${"wss://nova-arena-realtime.odi44972.workers.dev"}/room/${encodeURIComponent(room)}`;
   const socket = new WebSocket(endpoint);
   let closed = false;
@@ -21,6 +22,7 @@ export function connectRealtime(room: string, player: Position, onPlayers: (play
     try {
       const message = JSON.parse(event.data) as { type?: string; players?: RemotePlayer[] };
       if (message.type === "players") onPlayers((message.players ?? []).filter((remote) => remote.playerId !== player.playerId));
+      if (message.type === "damage" && message.targetId === player.playerId) onDamage?.(Number(message.amount), String(message.from ?? "Player"), Boolean(message.headshot));
     } catch {
       // Ignore malformed realtime packets.
     }
@@ -29,6 +31,9 @@ export function connectRealtime(room: string, player: Position, onPlayers: (play
   return {
     update(position) {
       latest = { ...latest, ...position };
+    },
+    damage(targetId, amount, headshot) {
+      if (socket.readyState === WebSocket.OPEN) socket.send(JSON.stringify({ type: "damage", targetId, amount, headshot }));
     },
     close() {
     if (closed) return;

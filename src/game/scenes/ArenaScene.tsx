@@ -62,7 +62,12 @@ export default function ArenaScene() {
 
   useEffect(() => {
     if (!profile) return;
-    realtime.current = connectRealtime("arena", { playerId: profile.id, name: profile.name, skinId: profile.skinId, ...arenaPosition.current }, setOthers);
+    realtime.current = connectRealtime(
+      "arena",
+      { playerId: profile.id, name: profile.name, skinId: profile.skinId, ...arenaPosition.current },
+      setOthers,
+      (amount, from) => world.player.takeDamage(amount, from),
+    );
     return () => {
       realtime.current?.close();
       realtime.current = null;
@@ -174,11 +179,11 @@ export default function ArenaScene() {
         <Suspense fallback={null}>
           <Physics gravity={[0, -22, 0]} timeStep={1 / 60} interpolate paused={phase === "paused" || phase === "ended"}>
             <CastleMap shadows={preset.shadows} />
-            <Player onMove={(x, y, z, ry) => { arenaPosition.current = { x, y, z, ry }; realtime.current?.update({ x, y, z, ry }); }} />
+            <Player onMove={(x, y, z, ry) => { arenaPosition.current = { x, y, z, ry }; realtime.current?.update({ x, y, z, ry }); }} onRemoteHit={(playerId, damage, headshot) => realtime.current?.damage(playerId, damage, headshot)} />
             <Bots count={others.length > 0 ? 0 : preset.bots} />
             <HealthPacks />
+            <RemotePlayers players={others} weapon collidable />
           </Physics>
-          <RemotePlayers players={others} weapon />
           <Effects particleBudget={preset.particles} />
           <SceneReady />
           <Preload all />

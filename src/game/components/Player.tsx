@@ -31,13 +31,14 @@ const _euler = new THREE.Euler(0, 0, 0, "YXZ");
 
 interface Props {
   onMove?: (x: number, y: number, z: number, ry: number) => void;
+  onRemoteHit?: (playerId: number, damage: number, headshot: boolean) => void;
 }
 
 /**
  * FPS-контроллер: динамическая капсула Rapier (без вращения), raycast-проверка земли,
  * стрельба hitscan через физический raycast (один вызов на выстрел), viewmodel-оружие.
  */
-export function Player({ onMove }: Props) {
+export function Player({ onMove, onRemoteHit }: Props) {
   const body = useRef<RapierRigidBody>(null);
   const gun = useRef<THREE.Group>(null!);
   const flash = useRef<THREE.Mesh>(null!);
@@ -282,6 +283,11 @@ export function Player({ onMove }: Props) {
               if (headshot) sfx.headshot();
               else sfx.hit();
             }
+          } else if (tag?.type === "remote") {
+            const headshot = _hit.y > 1.1;
+            onRemoteHit?.(tag.id, headshot ? HEAD_DAMAGE : DAMAGE, headshot);
+            hitBot = true;
+            headshot ? sfx.headshot() : sfx.hit();
           } else {
             _normal.set(res.normal.x, res.normal.y, res.normal.z);
             fx.burst(_hit, "#fff4c2", 5, 3, 0.06, 0.4, _normal);

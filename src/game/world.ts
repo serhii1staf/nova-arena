@@ -33,7 +33,7 @@ export const world = {
   },
 };
 
-export type BodyTag = { type: "player" } | { type: "bot"; id: number } | { type: "static" };
+export type BodyTag = { type: "player" } | { type: "bot"; id: number } | { type: "remote"; id: number } | { type: "static" };
 
 export const ARENA = {
   spawns: [

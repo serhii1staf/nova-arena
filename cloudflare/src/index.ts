@@ -34,13 +34,15 @@ export class Room extends DurableObject<Env> {
 
   private onMessage(socket: WebSocket, raw: string) {
     try {
-      const message = JSON.parse(raw) as { type?: string; player?: PlayerState };
+      const message = JSON.parse(raw) as { type?: string; player?: PlayerState; targetId?: number; amount?: number; headshot?: boolean };
       if (message.type === "join" && message.player) {
         this.sockets.set(socket, this.normalize(message.player));
         this.broadcast();
       } else if (message.type === "state" && message.player && this.sockets.has(socket)) {
         this.sockets.set(socket, this.normalize(message.player));
         this.broadcast(socket);
+      } else if (message.type === "damage" && message.targetId && message.amount) {
+        this.broadcast(JSON.stringify({ type: "damage", targetId: Number(message.targetId), amount: Number(message.amount), headshot: Boolean(message.headshot), from: this.sockets.get(socket)?.name ?? "Player" }));
       } else if (message.type === "leave") {
         this.remove(socket);
       }
@@ -65,11 +67,12 @@ export class Room extends DurableObject<Env> {
     if (this.sockets.delete(socket)) this.broadcast();
   }
 
-  private broadcast(exclude?: WebSocket) {
+  private broadcast(payload?: string, exclude?: WebSocket) {
     const players = [...this.sockets.values()];
+    const message = payload ?? JSON.stringify({ type: "players", players });
     for (const socket of this.sockets.keys()) {
       if (socket === exclude || socket.readyState !== WebSocket.OPEN) continue;
-      socket.send(JSON.stringify({ type: "players", players }));
+      socket.send(message);
     }
   }
 }
