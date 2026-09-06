@@ -4,6 +4,8 @@
 
 https://scalable-3d-multiplayer-shooter.vercel.app
 
+The source repository is https://github.com/serhii1staf/nova-arena.
+
 ## Local project
 
 The workspace is currently at:
