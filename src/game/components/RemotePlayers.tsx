@@ -9,6 +9,7 @@ import type { BodyTag } from "../world";
 
 export interface RemotePlayer {
   playerId: number;
+  sessionId: string;
   name: string;
   skinId: string;
   avatarId: string;
@@ -88,7 +89,7 @@ export function RemotePlayers({ players, weapon = false, collidable = false }: {
   return (
     <>
       {players.map((p) => (
-        <Remote key={p.playerId} p={p} weapon={weapon} collidable={collidable} />
+        <Remote key={p.sessionId || `${p.playerId}-${p.name}`} p={p} weapon={weapon} collidable={collidable} />
       ))}
     </>
   );

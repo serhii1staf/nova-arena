@@ -2,6 +2,7 @@ import { DurableObject } from "cloudflare:workers";
 
 interface PlayerState {
   playerId: number;
+  sessionId: string;
   name: string;
   skinId: string;
   avatarId: string;
@@ -55,6 +56,7 @@ export class Room extends DurableObject<Env> {
   private normalize(player: PlayerState): PlayerState {
     return {
       playerId: Number(player.playerId),
+      sessionId: String(player.sessionId ?? "").slice(0, 64),
       name: String(player.name).slice(0, 20),
       skinId: String(player.skinId).slice(0, 32),
       avatarId: String(player.avatarId ?? "pilot-blue").slice(0, 32),
