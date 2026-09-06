@@ -2,6 +2,7 @@ import { db } from "@/db";
 import { skins, playerSkins, players } from "@/db/schema";
 import { SKINS, DEFAULT_OWNED } from "@/game/skins";
 import { eq, ilike, sql } from "drizzle-orm";
+import { hashPassword, verifyPassword } from "./auth";
 
 let seeded = false;
 const MODERATOR_NAME = "kairozun";
@@ -48,12 +49,12 @@ export function sanitizeName(raw: unknown): string | null {
   return name;
 }
 
-export async function getOrCreatePlayer(name: string, avatarId = "pilot-blue") {
+export async function getOrCreatePlayer(name: string, password: string, avatarId = "pilot-blue") {
   await ensureSkinsSeeded();
   const existing = await db.select().from(players).where(ilike(players.name, name)).limit(1);
   let player = existing[0];
   if (!player) {
-    const inserted = await db.insert(players).values({ name, avatarId, role: name.toLowerCase() === MODERATOR_NAME ? "moderator" : "player" }).onConflictDoNothing().returning();
+    const inserted = await db.insert(players).values({ name, passwordHash: hashPassword(password), avatarId, role: name.toLowerCase() === MODERATOR_NAME ? "moderator" : "player" }).onConflictDoNothing().returning();
     player = inserted[0] ?? (await db.select().from(players).where(ilike(players.name, name)).limit(1))[0];
     if (!player) throw new Error("Could not create player");
     await db
@@ -61,6 +62,7 @@ export async function getOrCreatePlayer(name: string, avatarId = "pilot-blue") {
       .values(DEFAULT_OWNED.map((skinId) => ({ playerId: player.id, skinId })))
       .onConflictDoNothing();
   } else {
+    if (!verifyPassword(password, player.passwordHash)) throw new Error("INVALID_PASSWORD");
     await db.update(players).set({ avatarId, lastSeenAt: new Date() }).where(eq(players.id, player.id));
     player = { ...player, avatarId };
   }

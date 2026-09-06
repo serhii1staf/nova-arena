@@ -18,6 +18,7 @@ export const players = pgTable(
     id: serial("id").primaryKey(),
     name: text("name").notNull(),
     role: text("role").notNull().default("player"),
+    passwordHash: text("password_hash"),
     avatarId: text("avatar_id").notNull().default("pilot-blue"),
     externalId: text("external_id"),
     skinId: text("skin_id").notNull().default("nova"),

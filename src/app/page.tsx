@@ -12,6 +12,7 @@ export default function HomePage() {
   const profile = useProfile((s) => s.profile);
   const setProfile = useProfile((s) => s.setProfile);
   const [name, setName] = useState("");
+  const [password, setPassword] = useState("");
   const [avatarId, setAvatarId] = useState(DEFAULT_AVATAR_ID);
   const [avatarsOpen, setAvatarsOpen] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -29,7 +30,7 @@ export default function HomePage() {
     setError(null);
     setBusy(true);
     try {
-      const res = await fetch("/api/players", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name, avatarId }) });
+      const res = await fetch("/api/players", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name, password, avatarId }) });
       const d = await res.json();
       if (res.ok) {
         setProfile({
@@ -94,18 +95,20 @@ export default function HomePage() {
             placeholder="Например, StarFox"
             className="mt-1 w-full rounded-2xl border-2 border-slate-200 bg-slate-50 px-4 py-3 text-lg font-bold text-slate-800 outline-none transition focus:border-violet-400 focus:bg-white"
           />
+          <label className="mt-4 block text-xs font-bold uppercase tracking-wider text-slate-500">Пароль аккаунта</label>
+          <input value={password} onChange={(e) => setPassword(e.target.value)} type="password" minLength={8} maxLength={128} placeholder="Минимум 8 символов" className="mt-1 w-full rounded-2xl border-2 border-slate-200 bg-slate-50 px-4 py-3 text-lg font-bold text-slate-800 outline-none transition focus:border-violet-400 focus:bg-white" />
           {error && <div className="mt-2 rounded-xl bg-rose-50 px-3 py-2 text-sm font-semibold text-rose-600">{error}</div>}
 
           <button
             onClick={() => enter("/lobby")}
-            disabled={busy || name.trim().length < 2}
+            disabled={busy || name.trim().length < 2 || password.length < 8}
             className="mt-6 w-full rounded-2xl bg-gradient-to-r from-violet-500 to-fuchsia-500 py-4 text-xl font-black text-white shadow-lg transition hover:scale-[1.02] active:scale-95 disabled:opacity-40"
           >
             {busy ? "Подключение…" : "🚀 Войти в лобби"}
           </button>
           <button
             onClick={() => enter("/arena")}
-            disabled={busy || name.trim().length < 2}
+            disabled={busy || name.trim().length < 2 || password.length < 8}
             className="mt-3 w-full rounded-2xl bg-gradient-to-r from-rose-400 to-orange-400 py-3 text-lg font-black text-white shadow-lg transition hover:scale-[1.02] active:scale-95 disabled:opacity-40"
           >
             ⚔️ Сразу в бой

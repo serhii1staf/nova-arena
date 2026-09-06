@@ -5,6 +5,7 @@ dist
 *.log
 .env
 .env*.local
+.moderator-password.txt
 .DS_Store
 src-tauri/target
 

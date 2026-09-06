@@ -5,6 +5,7 @@ import { eq } from "drizzle-orm";
 import { getOrCreatePlayer, sanitizeName } from "@/lib/game-server";
 import { SKIN_MAP } from "@/game/skins";
 import { AVATARS, DEFAULT_AVATAR_ID } from "@/game/avatars";
+import { validPassword } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
@@ -13,14 +14,17 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json().catch(() => ({}));
     const name = sanitizeName(body?.name);
+    const password = body?.password;
+    if (!validPassword(password)) return Response.json({ error: "Пароль: минимум 8 символов" }, { status: 400 });
     const avatarId = AVATARS.some((avatar) => avatar.id === body?.avatarId) ? String(body.avatarId) : DEFAULT_AVATAR_ID;
     if (!name) return Response.json({ error: "Имя: 2–20 символов (буквы, цифры, _ - .)" }, { status: 400 });
     if (!hasDatabase) {
       return Response.json({ player: { id: 0, name, role: name.toLowerCase() === "kairozun" ? "moderator" : "player", avatarId, skinId: "nova", coins: 0, xp: 0, level: 1, ownedSkins: ["nova"] } });
     }
-    const player = await getOrCreatePlayer(name, avatarId);
+    const player = await getOrCreatePlayer(name, password, avatarId);
     return Response.json({ player });
   } catch (e) {
+    if (e instanceof Error && e.message === "INVALID_PASSWORD") return Response.json({ error: "Неверное имя или пароль" }, { status: 401 });
     console.error(e);
     return Response.json({ error: "Server error" }, { status: 500 });
   }
