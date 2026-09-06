@@ -11,6 +11,7 @@ export interface RemotePlayer {
   playerId: number;
   name: string;
   skinId: string;
+  avatarId: string;
   x: number;
   y: number;
   z: number;

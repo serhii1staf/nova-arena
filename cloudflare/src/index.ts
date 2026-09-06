@@ -4,6 +4,7 @@ interface PlayerState {
   playerId: number;
   name: string;
   skinId: string;
+  avatarId: string;
   x: number;
   y: number;
   z: number;
@@ -56,6 +57,7 @@ export class Room extends DurableObject<Env> {
       playerId: Number(player.playerId),
       name: String(player.name).slice(0, 20),
       skinId: String(player.skinId).slice(0, 32),
+      avatarId: String(player.avatarId ?? "pilot-blue").slice(0, 32),
       x: Number(player.x) || 0,
       y: Number(player.y) || 0,
       z: Number(player.z) || 0,
