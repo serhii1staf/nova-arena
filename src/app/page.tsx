@@ -35,6 +35,7 @@ export default function HomePage() {
         setProfile({
           id: d.player.id,
           name: d.player.name,
+          role: d.player.role ?? "player",
           skinId: d.player.skinId,
           coins: d.player.coins,
           xp: d.player.xp,
@@ -42,11 +43,11 @@ export default function HomePage() {
           ownedSkins: d.player.ownedSkins,
         });
       } else {
-        setProfile({ id: 0, name: name.trim(), skinId: "nova", coins: 0, xp: 0, level: 1, ownedSkins: ["nova"] });
+        setProfile({ id: 0, name: name.trim(), role: "player", skinId: "nova", coins: 0, xp: 0, level: 1, ownedSkins: ["nova"] });
       }
       router.push(dest);
     } catch {
-      setProfile({ id: 0, name: name.trim(), skinId: "nova", coins: 0, xp: 0, level: 1, ownedSkins: ["nova"] });
+      setProfile({ id: 0, name: name.trim(), role: "player", skinId: "nova", coins: 0, xp: 0, level: 1, ownedSkins: ["nova"] });
       router.push(dest);
     } finally {
       setBusy(false);

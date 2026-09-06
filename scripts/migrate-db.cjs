@@ -16,6 +16,9 @@ const statements = [
     last_seen_at timestamptz NOT NULL DEFAULT now()
   )`,
   "CREATE UNIQUE INDEX IF NOT EXISTS players_name_idx ON players(name)",
+  "ALTER TABLE players ADD COLUMN IF NOT EXISTS role text NOT NULL DEFAULT 'player'",
+  "DROP INDEX IF EXISTS players_name_idx",
+  "CREATE UNIQUE INDEX IF NOT EXISTS players_name_lower_idx ON players(lower(name))",
   `CREATE TABLE IF NOT EXISTS skins (
     id text PRIMARY KEY,
     name text NOT NULL,

@@ -7,6 +7,7 @@ export type Quality = "low" | "medium" | "high";
 export interface Profile {
   id: number;
   name: string;
+  role: "player" | "moderator";
   skinId: string;
   coins: number;
   xp: number;

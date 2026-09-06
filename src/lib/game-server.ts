@@ -1,9 +1,10 @@
 import { db } from "@/db";
 import { skins, playerSkins, players } from "@/db/schema";
 import { SKINS, DEFAULT_OWNED } from "@/game/skins";
-import { eq, sql } from "drizzle-orm";
+import { eq, ilike, sql } from "drizzle-orm";
 
 let seeded = false;
+const MODERATOR_NAME = "kairozun";
 
 /** Идемпотентное сидирование каталога скинов (один раз на процесс). */
 export async function ensureSkinsSeeded() {
@@ -49,11 +50,12 @@ export function sanitizeName(raw: unknown): string | null {
 
 export async function getOrCreatePlayer(name: string) {
   await ensureSkinsSeeded();
-  const existing = await db.select().from(players).where(eq(players.name, name)).limit(1);
+  const existing = await db.select().from(players).where(ilike(players.name, name)).limit(1);
   let player = existing[0];
   if (!player) {
-    const inserted = await db.insert(players).values({ name }).returning();
-    player = inserted[0];
+    const inserted = await db.insert(players).values({ name, role: name.toLowerCase() === MODERATOR_NAME ? "moderator" : "player" }).onConflictDoNothing().returning();
+    player = inserted[0] ?? (await db.select().from(players).where(ilike(players.name, name)).limit(1))[0];
+    if (!player) throw new Error("Could not create player");
     await db
       .insert(playerSkins)
       .values(DEFAULT_OWNED.map((skinId) => ({ playerId: player.id, skinId })))
