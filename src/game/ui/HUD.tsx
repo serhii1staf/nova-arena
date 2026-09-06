@@ -5,10 +5,12 @@ import { useGame, useProfile, MATCH_DURATION } from "../store";
 import { input } from "../input";
 import { sfx } from "../audio";
 import { SettingsPanel } from "./SettingsPanel";
+import type { RemotePlayer } from "../components/RemotePlayers";
+import { getAvatar } from "../avatars";
 
 const fmt = (t: number) => `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, "0")}`;
 
-export function HUD({ onStart, onResume, results }: { onStart: () => void; onResume: () => void; results: { coinsEarned: number; xpEarned: number; saved: boolean } | null }) {
+export function HUD({ onStart, onResume, results, opponents = [] }: { onStart: () => void; onResume: () => void; results: { coinsEarned: number; xpEarned: number; saved: boolean } | null; opponents?: RemotePlayer[] }) {
   const router = useRouter();
   const phase = useGame((s) => s.phase);
   const hp = useGame((s) => s.hp);
@@ -118,6 +120,13 @@ export function HUD({ onStart, onResume, results }: { onStart: () => void; onRes
             ))}
           </div>
 
+          {opponents.length > 0 && <div className="absolute left-1/2 top-28 flex -translate-x-1/2 gap-2">
+            {opponents.slice(0, 6).map((opponent) => <div key={opponent.playerId} className="flex items-center gap-2 rounded-xl bg-slate-950/65 px-2 py-1.5 text-white shadow-lg backdrop-blur">
+              <img src={getAvatar(opponent.avatarId).url} alt="" className="h-8 w-8 rounded-lg object-cover" />
+              <div className="min-w-20"><div className="max-w-24 truncate text-[11px] font-black">{opponent.name}</div><div className="mt-1 h-1.5 w-20 overflow-hidden rounded-full bg-white/30"><div className="h-full w-full rounded-full bg-emerald-400" /></div></div>
+            </div>)}
+          </div>}
+
           {/* HP */}
           <div className="absolute bottom-6 left-6 w-72">
             <div className="mb-1 flex items-end justify-between">
@@ -170,7 +179,7 @@ export function HUD({ onStart, onResume, results }: { onStart: () => void; onRes
             <div className="text-sm font-bold uppercase tracking-widest text-violet-500">Арена · Замок</div>
             <h1 className="mt-1 text-4xl font-black text-slate-800">Готовы к бою?</h1>
             <p className="mt-3 text-slate-600">
-              {MATCH_DURATION / 60} минут · Deathmatch против ботов. Хедшот = мгновенное устранение.
+              {MATCH_DURATION / 60} минут · Deathmatch. Хедшот = мгновенное устранение.
             </p>
             <div className="mt-4 grid grid-cols-2 gap-2 text-left text-sm text-slate-700">
               <div className="rounded-xl bg-slate-100 p-2"><b>WASD</b> — движение</div>

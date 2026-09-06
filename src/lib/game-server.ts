@@ -48,12 +48,12 @@ export function sanitizeName(raw: unknown): string | null {
   return name;
 }
 
-export async function getOrCreatePlayer(name: string) {
+export async function getOrCreatePlayer(name: string, avatarId = "pilot-blue") {
   await ensureSkinsSeeded();
   const existing = await db.select().from(players).where(ilike(players.name, name)).limit(1);
   let player = existing[0];
   if (!player) {
-    const inserted = await db.insert(players).values({ name, role: name.toLowerCase() === MODERATOR_NAME ? "moderator" : "player" }).onConflictDoNothing().returning();
+    const inserted = await db.insert(players).values({ name, avatarId, role: name.toLowerCase() === MODERATOR_NAME ? "moderator" : "player" }).onConflictDoNothing().returning();
     player = inserted[0] ?? (await db.select().from(players).where(ilike(players.name, name)).limit(1))[0];
     if (!player) throw new Error("Could not create player");
     await db

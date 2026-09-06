@@ -19,6 +19,7 @@ import { SkinPanel } from "../ui/SkinPanel";
 import { SettingsPanel } from "../ui/SettingsPanel";
 import { TouchControls } from "../ui/TouchControls";
 import { connectRealtime, type RealtimeConnection } from "../realtime";
+import { getAvatar } from "../avatars";
 
 const ZONES = Object.values(LOBBY_ZONES);
 const PROMPTS: Record<string, string> = {
@@ -35,7 +36,7 @@ export default function LobbyScene() {
   const settings = useProfile((s) => s.settings);
   const preset = QUALITY_PRESETS[settings.quality];
   const [ready, setReady] = useState(false);
-  const [started, setStarted] = useState(false);
+  const [started, setStarted] = useState(true);
   const [zone, setZone] = useState<string | null>(null);
   const [panel, setPanel] = useState<"skins" | "settings" | null>(null);
   const [others, setOthers] = useState<RemotePlayer[]>([]);
@@ -65,7 +66,7 @@ export default function LobbyScene() {
 
   useEffect(() => {
     if (!profile || !started) return;
-    realtime.current = connectRealtime("main", { playerId: profile.id, name: profile.name, skinId: profile.skinId, ...pos.current }, setOthers);
+    realtime.current = connectRealtime("main", { playerId: profile.id, name: profile.name, skinId: profile.skinId, avatarId: profile.avatarId, ...pos.current }, setOthers);
     return () => {
       realtime.current?.close();
       realtime.current = null;
@@ -164,7 +165,7 @@ export default function LobbyScene() {
       <div className="pointer-events-none fixed left-0 right-0 top-0 z-20 flex items-start justify-between p-4">
         <div className="pointer-events-auto flex items-center gap-3 rounded-2xl bg-white/85 px-4 py-2 shadow-lg backdrop-blur">
           <div className="grid h-10 w-10 place-items-center overflow-hidden rounded-xl bg-gradient-to-br from-violet-100 to-fuchsia-100">
-            <SkinPreview s={getSkin(profile.skinId)} size={40} />
+            <img src={getAvatar(profile.avatarId).url} alt="" className="h-10 w-10 rounded-xl object-cover" />
           </div>
           <div>
             <div className="font-black text-slate-800">{profile.name}</div>

@@ -17,6 +17,7 @@ const statements = [
   )`,
   "CREATE UNIQUE INDEX IF NOT EXISTS players_name_idx ON players(name)",
   "ALTER TABLE players ADD COLUMN IF NOT EXISTS role text NOT NULL DEFAULT 'player'",
+  "ALTER TABLE players ADD COLUMN IF NOT EXISTS avatar_id text NOT NULL DEFAULT 'pilot-blue'",
   "DROP INDEX IF EXISTS players_name_idx",
   "CREATE UNIQUE INDEX IF NOT EXISTS players_name_lower_idx ON players(lower(name))",
   `CREATE TABLE IF NOT EXISTS skins (

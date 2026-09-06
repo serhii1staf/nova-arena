@@ -64,7 +64,7 @@ export default function ArenaScene() {
     if (!profile) return;
     realtime.current = connectRealtime(
       "arena",
-      { playerId: profile.id, name: profile.name, skinId: profile.skinId, ...arenaPosition.current },
+      { playerId: profile.id, name: profile.name, skinId: profile.skinId, avatarId: profile.avatarId, ...arenaPosition.current },
       setOthers,
       (amount, from) => world.player.takeDamage(amount, from),
     );
@@ -189,7 +189,7 @@ export default function ArenaScene() {
           <Preload all />
         </Suspense>
       </Canvas>
-      <HUD onStart={start} onResume={resume} results={results} />
+      <HUD onStart={start} onResume={resume} results={results} opponents={others} />
       {(phase === "playing" || phase === "dead") && <TouchControls />}
       {input.touch && phase === "playing" && (
         <button onClick={() => useGame.getState().setPhase("paused")} className="fixed left-3 top-3 z-30 rounded-xl bg-white/80 px-3 py-1.5 text-sm font-bold text-slate-700 shadow">
