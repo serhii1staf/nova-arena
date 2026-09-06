@@ -19,6 +19,7 @@ export function connectRealtime(room: string, player: Position, onPlayers: (play
     if (socket.readyState === WebSocket.OPEN) socket.send(JSON.stringify({ type, player: latest }));
   };
   socket.addEventListener("open", () => send("join"));
+  const positionInterval = window.setInterval(() => send("state"), 50);
   socket.addEventListener("message", (event) => {
     try {
       const message = JSON.parse(event.data) as { type?: string; players?: RemotePlayer[]; targetId?: number; amount?: number; from?: string; headshot?: boolean };
@@ -28,7 +29,6 @@ export function connectRealtime(room: string, player: Position, onPlayers: (play
       // Ignore malformed realtime packets.
     }
   });
-  const interval = window.setInterval(() => send("state"), 50);
   return {
     update(position) {
       latest = { ...latest, ...position };
@@ -39,7 +39,7 @@ export function connectRealtime(room: string, player: Position, onPlayers: (play
     close() {
     if (closed) return;
     closed = true;
-    window.clearInterval(interval);
+    window.clearInterval(positionInterval);
     if (socket.readyState === WebSocket.OPEN) socket.send(JSON.stringify({ type: "leave" }));
     socket.close();
     },

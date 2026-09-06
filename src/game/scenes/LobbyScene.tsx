@@ -20,6 +20,7 @@ import { SettingsPanel } from "../ui/SettingsPanel";
 import { TouchControls } from "../ui/TouchControls";
 import { connectRealtime, type RealtimeConnection } from "../realtime";
 import { getAvatar } from "../avatars";
+import { ModeratorPanel } from "../ui/ModeratorPanel";
 
 const ZONES = Object.values(LOBBY_ZONES);
 const PROMPTS: Record<string, string> = {
@@ -227,6 +228,7 @@ export default function LobbyScene() {
       {entering && <div className="pointer-events-none fixed inset-0 z-40 animate-pulse bg-white/80" />}
 
       {started && !panel && <TouchControls fire={false} />}
+      <ModeratorPanel />
     </div>
   );
 }

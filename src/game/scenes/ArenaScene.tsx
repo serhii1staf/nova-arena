@@ -16,6 +16,7 @@ import { Effects } from "../components/Effects";
 import { GradientSky, Lights } from "../components/Environment";
 import { HUD } from "../ui/HUD";
 import { TouchControls } from "../ui/TouchControls";
+import { ModeratorPanel } from "../ui/ModeratorPanel";
 import { RemotePlayers, type RemotePlayer } from "../components/RemotePlayers";
 import { connectRealtime, type RealtimeConnection } from "../realtime";
 
@@ -196,6 +197,7 @@ export default function ArenaScene() {
           ⏸
         </button>
       )}
+      <ModeratorPanel />
     </div>
   );
 }
