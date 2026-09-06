@@ -2,7 +2,7 @@
 
 ## Public deployment
 
-https://scalable-3d-multiplayer-shooter.vercel.app
+https://nova-arena-public.vercel.app
 
 The source repository is https://github.com/serhii1staf/nova-arena.
 
