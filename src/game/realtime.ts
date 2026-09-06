@@ -20,7 +20,7 @@ export function connectRealtime(room: string, player: Position, onPlayers: (play
   socket.addEventListener("open", () => send("join"));
   socket.addEventListener("message", (event) => {
     try {
-      const message = JSON.parse(event.data) as { type?: string; players?: RemotePlayer[] };
+      const message = JSON.parse(event.data) as { type?: string; players?: RemotePlayer[]; targetId?: number; amount?: number; from?: string; headshot?: boolean };
       if (message.type === "players") onPlayers((message.players ?? []).filter((remote) => remote.playerId !== player.playerId));
       if (message.type === "damage" && message.targetId === player.playerId) onDamage?.(Number(message.amount), String(message.from ?? "Player"), Boolean(message.headshot));
     } catch {
