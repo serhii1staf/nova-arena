@@ -61,7 +61,8 @@ export async function getOrCreatePlayer(name: string, avatarId = "pilot-blue") {
       .values(DEFAULT_OWNED.map((skinId) => ({ playerId: player.id, skinId })))
       .onConflictDoNothing();
   } else {
-    await db.update(players).set({ lastSeenAt: new Date() }).where(eq(players.id, player.id));
+    await db.update(players).set({ avatarId, lastSeenAt: new Date() }).where(eq(players.id, player.id));
+    player = { ...player, avatarId };
   }
   const owned = await db
     .select({ skinId: playerSkins.skinId })
