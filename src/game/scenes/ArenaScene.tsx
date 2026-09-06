@@ -65,7 +65,7 @@ export default function ArenaScene() {
     if (!profile) return;
     realtime.current = connectRealtime(
       "arena",
-      { playerId: profile.id, name: profile.name, skinId: profile.skinId, avatarId: profile.avatarId, ...arenaPosition.current },
+      { playerId: profile.id, name: profile.name, skinId: profile.skinId, avatarId: profile.avatarId, team: profile.id % 2 ? "red" : "blue", hp: 100, ...arenaPosition.current },
       setOthers,
       (amount, from) => world.player.takeDamage(amount, from),
     );

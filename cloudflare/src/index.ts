@@ -6,6 +6,8 @@ interface PlayerState {
   name: string;
   skinId: string;
   avatarId: string;
+  team: "red" | "blue";
+  hp: number;
   x: number;
   y: number;
   z: number;
@@ -44,7 +46,10 @@ export class Room extends DurableObject<Env> {
         this.sockets.set(socket, this.normalize(message.player));
         this.broadcast(socket);
       } else if (message.type === "damage" && message.targetId && message.amount) {
+        const target = [...this.sockets.entries()].find(([, player]) => player.playerId === Number(message.targetId));
+        if (target) target[1].hp = Math.max(0, target[1].hp - Math.max(0, Number(message.amount)));
         this.broadcast(JSON.stringify({ type: "damage", targetId: Number(message.targetId), amount: Number(message.amount), headshot: Boolean(message.headshot), from: this.sockets.get(socket)?.name ?? "Player" }));
+        this.broadcast();
       } else if (message.type === "leave") {
         this.remove(socket);
       }
@@ -60,6 +65,8 @@ export class Room extends DurableObject<Env> {
       name: String(player.name).slice(0, 20),
       skinId: String(player.skinId).slice(0, 32),
       avatarId: String(player.avatarId ?? "pilot-blue").slice(0, 32),
+      team: player.team === "red" ? "red" : "blue",
+      hp: Number.isFinite(Number(player.hp)) ? Math.max(0, Math.min(100, Number(player.hp))) : 100,
       x: Number(player.x) || 0,
       y: Number(player.y) || 0,
       z: Number(player.z) || 0,

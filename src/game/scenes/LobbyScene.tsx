@@ -67,7 +67,7 @@ export default function LobbyScene() {
 
   useEffect(() => {
     if (!profile || !started) return;
-    realtime.current = connectRealtime("main", { playerId: profile.id, name: profile.name, skinId: profile.skinId, avatarId: profile.avatarId, ...pos.current }, setOthers);
+    realtime.current = connectRealtime("main", { playerId: profile.id, name: profile.name, skinId: profile.skinId, avatarId: profile.avatarId, team: profile.id % 2 ? "red" : "blue", hp: 100, ...pos.current }, setOthers);
     return () => {
       realtime.current?.close();
       realtime.current = null;

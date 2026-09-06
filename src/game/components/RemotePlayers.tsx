@@ -6,6 +6,8 @@ import { Text, Billboard } from "@react-three/drei";
 import { CapsuleCollider, RigidBody, type RapierRigidBody } from "@react-three/rapier";
 import { Character, type CharacterHandle } from "./Character";
 import type { BodyTag } from "../world";
+import { getAvatar } from "../avatars";
+import { GEO, basic } from "../materials";
 
 export interface RemotePlayer {
   playerId: number;
@@ -13,6 +15,8 @@ export interface RemotePlayer {
   name: string;
   skinId: string;
   avatarId: string;
+  team: "red" | "blue";
+  hp: number;
   x: number;
   y: number;
   z: number;
@@ -69,10 +73,16 @@ function Remote({ p, weapon = false, collidable = false }: { p: RemotePlayer; we
   const visual = (
     <group ref={g}>
       <Character ref={char} skinId={p.skinId} weapon={weapon} castShadow={false} />
-      <Billboard position={[0, 2.15, 0]}>
-        <Text fontSize={0.26} color="#ffffff" outlineWidth={0.025} outlineColor="#0891b2" anchorY="bottom">
-          {p.name}
-        </Text>
+      <Billboard position={[0, 2.35, 0]}>
+        <group>
+          <mesh geometry={GEO.plane} material={basic(p.team === "red" ? "#fb7185" : "#60a5fa")} scale={[0.9, 0.1, 1]} position={[0, 0.22, 0]} />
+          <mesh geometry={GEO.plane} material={basic("#34d399")} scale={[0.9 * Math.max(0, p.hp) / 100, 0.07, 1]} position={[-0.45 + 0.45 * Math.max(0, p.hp) / 100, 0.22, 0.002]} />
+          <mesh geometry={GEO.plane} material={basic(p.team === "red" ? "#fb7185" : "#60a5fa")} scale={0.16} position={[0, 0.58, 0]} rotation={[0, 0, Math.PI / 4]} />
+          <sprite position={[-0.62, 0.58, 0]} scale={[0.28, 0.28, 1]}><spriteMaterial map={avatarTexture(getAvatar(p.avatarId).url)} transparent /></sprite>
+          <Text fontSize={0.24} color="#ffffff" outlineWidth={0.025} outlineColor={p.team === "red" ? "#be123c" : "#1d4ed8"} anchorY="bottom">
+            {p.name}
+          </Text>
+        </group>
       </Billboard>
     </group>
   );
@@ -83,6 +93,17 @@ function Remote({ p, weapon = false, collidable = false }: { p: RemotePlayer; we
       {visual}
     </RigidBody>
   );
+}
+
+const avatarTextures = new Map<string, THREE.Texture>();
+function avatarTexture(url: string) {
+  let texture = avatarTextures.get(url);
+  if (!texture) {
+    texture = new THREE.TextureLoader().load(url);
+    texture.colorSpace = THREE.SRGBColorSpace;
+    avatarTextures.set(url, texture);
+  }
+  return texture;
 }
 
 export function RemotePlayers({ players, weapon = false, collidable = false }: { players: RemotePlayer[]; weapon?: boolean; collidable?: boolean }) {
